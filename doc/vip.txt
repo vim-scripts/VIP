@@ -1,0 +1,473 @@
+*vip.txt* VHDL Interface Plugin to copy and paste entities, components, etc.
+
+VIP                                                   *VIP* *vip* *vip-plugin*
+For Vim version 7.0 or later.
+Last Change: nov. 20 2010
+
+Contents:
+
+    Introduction.......................... |vip-introduction|
+    Installation.......................... |vip-installation|
+    Commands.............................. |vip-commands|
+    Usage................................. |vip-usage|
+    Formatting Blocks..................... |vip-formatting|
+    Configuration......................... |vip-configuration|
+    Download, Feedback and Contact........ |vip-contact|
+    License............................... |vip-license|
+    History............................... |vip-history|
+
+
+==============================================================================
+INTRODUCTION                                                *vip-introduction*
+
+VIP (VHDL Interface Plug-in) is a script which provides some facilities to
+copy paste entities, components and instances of components.
+For example you can copy the component :
+
+>
+    component mux is   -- place the cursor on this line and enter :Viy
+      port (
+        INPUT  : in  std_logic_vector (15 downto 0);
+        SEL    : in  std_logic;
+        OUTPUT : out std_logic
+      );
+    end component mux;
+<
+
+and paste it as an instance :
+
+>
+    mux_0 : mux   -- place the cursor here and enter :Vii
+      port map (
+        INPUT   => s_INPUT,
+        SEL     => s_SEL,
+        OUTPUT  => s_OUTPUT
+      );
+<
+
+VIP can
+
+- copy an entity and paste it as
+ - an entity
+ - a component
+ - an instance
+
+- copy a component and paste it as
+ - an entity
+ - a component
+ - an instance
+
+- copy a instance and paste it as
+ - an instance (with auto-incrementation of the suffix number)
+
+VIP tries to respect your indentation as much as possible (spaces, tabs,
+spaces + tabs).
+It can work with many different styles of writing entities, components
+and instances, but not all of them. See the "Formatting Blocks" section.
+
+
+==============================================================================
+INSTALLATION                                                *vip-installation*
+
+Put the plugin/vip.vim file into your ~/.vim/plugin (or $HOME\vimfiles\plugin)
+directory.
+Put the doc/vip.txt into your ~/.vim/doc (or $HOME\vimfiles\doc) directory.
+
+Run ":helptags ~/.vim/doc" (":helptags $HOME/vimfiles/doc")
+
+
+==============================================================================
+COMMANDS                                                        *vip-commands*
+
+:Viy or <leader>y copy a block (entity, component or instance of component)
+                  [Vhdl Interface Yank]
+:Vie or <leader>e paste as entity [Vhdl Interface Entity]
+:Vic or <leader>c paste as component [Vhdl Interface Component]
+:Vii or <leader>i paste as instance [Vhdl Interface Instance]
+
+
+==============================================================================
+USAGE                                                              *vip-usage*
+
+To copy a block, place the cursor on the line with "entity", or "component"
+word. For instance of components, place the cursor on the instance name.
+
+Enter the command :Viy to copy the block.
+
+To paste the block, place the cursor where you want to paste it and enter :
+:Vie to paste as an entity
+:Vic to paste as a component
+:Vii to paste as an instance of a component
+
+When an entity or a component is pasted as an instance, the ports are
+duplicated as signals with a "s_" prefix added.
+If you copy the component (or the entity) :
+
+>
+    component mux is  -- place cursor here
+      port (
+        INPUT  : in  std_logic_vector (15 downto 0);
+        SEL    : in  std_logic;
+        OUTPUT : out std_logic
+      );
+    end component mux;
+<
+
+and paste it as an instance. The copy will be :
+
+>
+    i_mux_0 : mux
+      port map (
+        INPUT   => s_INPUT,
+        SEL     => s_SEL,
+        OUTPUT  => s_OUTPUT
+      );
+<
+
+The name of the instance is a duplication of the component's name with a
+suffix ("_0") added. The suffix number is auto-incremented when you do
+multiple paste of the same component.
+Additionally, you can add a prefix before the instance name ("i_").
+
+To copy an instance, place the cursor on the line with the instance name :
+
+>
+    U2 : clock  -- place cursor here
+      generic map (g_WIDTH => 14)
+      port map (
+        DATA    => s_DATA,
+        CLK     => s_CLK,
+        RST_SRn => s_RSTn,
+        CLK     => s_CLKOUT0(0)
+      );
+<
+
+and use the :Viy command to copy and the :Vii to paste.
+If the instance name has a suffix, the suffix number is incremented.
+Otherwise, the suffix is added :
+
+>
+    U2_0 : clock  -- place cursor here
+      generic map (g_WIDTH => 14)
+      port map (
+        DATA    => s_DATA,
+        CLK     => s_CLK,
+        RST_SRn => s_RSTn,
+        CLK     => s_CLKOUT0(0)
+      );
+<
+
+
+==============================================================================
+FORMATTING BLOCKS                                             *vip-formatting*
+
+VIP needs some formatting to parse correctly a block. It will fail to read a
+block if the opening brace is followed by text or if there is no "port" or
+"generic" keyword before the opening brace on the same line.
+Do not put a blank line inside your block. VIP stops at a blank line, this is to
+avoid parsing the whole file if a closing brace is missing. Instead of a blank line, use a comment line.
+Each signal should be on a separate line
+
+To resume :
+  - No text after the opening brace
+  - "port" or "generic" before the opening brace, on the same line
+  - No blank line in the body of the block
+  - Each signal should be on a separate line
+
+Here is some examples of formatting which ** WILL NOT ** work with VIP :
+
+>
+    -- Bad formatting for VIP
+    -- No "port" or "generic" before the opening brace
+    component mux is port
+    (
+      INPUT  : in  std_logic_vector (15 downto 0);
+      OUTPUT : out std_logic
+    );
+    end component mux;
+
+    -- Bad formatting for VIP
+    -- Text after the "port" opening brace
+    component mux is
+      port  (  INPUT  : in  std_logic_vector (15 downto 0);
+        OUTPUT : out std_logic
+      );
+    end component mux;
+
+    -- Bad formatting for VIP
+    -- Comment after the "port" opening brace
+    component mux is
+      port  (   -- bad placed comment
+        INPUT  : in  std_logic_vector (15 downto 0);
+        OUTPUT : out std_logic
+      );
+    end component mux;
+
+    -- Bad formatting for VIP
+    -- Text after the "port" opening brace
+    U0 : clock port map ( CLK => s_CLK );
+
+    -- Bad formatting for VIP
+    -- Text after the "generic" opening brace
+    component mux is
+    generic (g_WIDTH => 14)
+    port (
+      DATA    : in std_logic;
+      RST_SRn : in std_logic;
+      CLK     : out std_logic
+    );
+
+    -- Bad formatting for VIP
+    -- Blank line in the component body
+    component mux is
+      port  (
+        INPUT  : in  std_logic_vector (15 downto 0);
+
+        OUTPUT : out std_logic
+      );
+    end component mux;
+
+    -- Bad formatting for VIP
+    -- Several signals on same line
+    entity dsr is
+     port (
+      D, CLK, S : in std_logic;
+      Q : out std_logic);
+    end entity dsr;
+
+<
+
+Here is some examples of formatting which will work with VIP :
+
+>
+    -- Good formatting for VIP
+    component mux is port (
+      INPUT  : in  std_logic;
+      SEL    : in  std_logic;
+      OUTPUT : out std_logic
+    );
+    end component mux;
+
+    -- Good formatting for VIP
+    component mux is
+      port (
+        INPUT  : in  std_logic;
+        SEL    : in  std_logic;
+        OUTPUT : out std_logic_vector (15 downto 0)
+      );
+    end component mux;
+
+    -- Good formatting for VIP
+    component mux is
+      port (
+        INPUT  : in  std_logic;
+        SEL    : in  std_logic;
+        OUTPUT : out std_logic_vector (15 downto 0) );
+    end component mux;
+
+    -- Good formatting for VIP
+    component mux is
+      port  (
+        -- comment instead of blank line
+        INPUT  : in  std_logic_vector (15 downto 0);
+        ----------------------
+        OUTPUT : out std_logic
+      );
+    end component mux;
+
+    -- Good formatting for VIP
+    U0 : clock port map (
+      DATA     => s_DATA,
+      CLK        => s_CLK,
+      RST_SRn    => s_RST_SRn,
+      DELAY      => s_DELAY
+    );
+
+    -- Good formatting for VIP
+    U1 : clock
+    port map (
+      DATA     => s_DATA,
+      CLK        => s_CLK,
+      RST_SRn    => s_RST_SRn,
+      DELAY      => s_DELAY
+    );
+
+    -- Good formatting for VIP
+    U4 : mux
+    generic map (
+      g_WIDTH => 14
+    )
+    port map (
+      DATA  => s_DATA,
+      CLK     => s_CLK,
+      RST_SRn => s_RSTn,
+      CLK => s_CLKOUT0(0)
+    );
+
+    -- Good formatting for VIP
+    U5 : mux generic map (
+      g_WIDTH => 14 )
+    port map (
+      DATA    => s_DATA,
+      CLK     => s_CLK,
+      RST_SRn => s_RSTn,
+      CLK => s_CLKOUT0(0)
+    );
+<
+
+==============================================================================
+CONFIGURATION                                              *vip-configuration*
+
+To avoid the loading of VIP plugin, you can set the global variable
+g:loaded_VIP to 1 in your vimrc file. >
+
+    let g:loaded_sequence = 1
+<
+
+To change the signal prefix, change the global variable g:sigPrefix_VIP.
+Set it to an empty string ("") if you don't want a prefix. >
+
+    let g:sigPrefix_VIP = "sig_"
+    let g:sigPrefix_VIP = ""
+
+  by default set to "s_"
+<
+To change the instance's name prefix, change the global variable
+g:instPrefix_VIP.
+Set it to an empty string ("") if you don't want a suffix. >
+
+    let g:instPrefix_VIP = "i_"
+    let g:instPrefix_VIP = ""
+
+  by default set to ""
+<
+To change the instance's name suffix, change the global variable
+g:instSuffix_VIP.
+Set it to an empty string ("") if you don't want a suffix. >
+
+    let g:instSuffix_VIP = "_"
+    let g:instSuffix_VIP = ""
+
+  by default set to "_"
+<
+To change the entity word, change the global variable g:entityWord_VIP. >
+    let g:entityWord_VIP = "Entity"
+    let g:entityWord_VIP = "ENTITY"
+
+  by default set to "entity"
+<
+To change the component word, change the global variable g:componentWord_VIP. >
+
+    let g:componentWord_VIP = "Component"
+    let g:componentWord_VIP = "COMPONENT"
+
+  by default set to "component"
+<
+To disable the auto-incrementation of the instance's name, set the global
+variable g:autoInc_VIP to 0. >
+
+    let g:autoInc_VIP = 0 " auto-incrementation disabled
+    let g:autoInc_VIP = 1 " auto-incrementation allowed
+
+  by default set to 1
+<
+
+Add to your vimrc file any variable you want to change permanently.
+
+You can remap the commands to any key you want by using the "nmap" command.
+For example, you can add to your vimrc file :
+
+nmap <F2> :Viy<CR>
+nmap <F3> :Vie<CR>
+nmap <F4> :Vic<CR>
+nmap <F5> :Vii<CR>
+
+Note : don't use <F1>, it is already used for help.
+
+
+==============================================================================
+CONTACT                                                          *vip-contact*
+
+Download          : http://www.vim.org/scripts/
+Contact, feedback : http://www.microreflexion.com/?page_id=9
+Source code       : http://gitorious.org/vip
+
+
+==============================================================================
+LICENSE                                                          *vip-license*
+>
+    Copyright (C) 2010 JP Ricaud
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    http://www.gnu.org/licenses/
+<
+
+==============================================================================
+HISTORY                                                          *vip-history*
+
+Version 1.0.0 ; nov. 20 2010 ~
+----------------------------
+ - Added instance prefix
+ - Added try / catch for unexpected errors
+ - Documentation updated
+
+
+Version 0.1.7 ; nov. 19 2010 ~
+----------------------------
+ - Fixed generic() parser
+
+
+Version 0.1.6 ; nov. 17 2010 ~
+----------------------------
+ - Added verification of existing global variable
+ - Added verification of comment lines
+ - Fixed ; after generic brace
+ - Documentation updated
+
+
+Version 0.1.5 ; nov. 16 2010 ~
+----------------------------
+ - Added auto-incrementation on / off
+ - Documentation updated
+
+
+Version 0.1.4 ; nov. 14 2010 ~
+----------------------------
+ - Added auto-incrementation of instance name
+ - Documentation updated
+
+
+Version 0.1.3 ; nov. 14 2010 ~
+----------------------------
+ - Added global variable for signal prefix, instance's name suffix, entity
+     and component name
+ - Documentation updated
+
+
+Version 0.1.2 ; nov. 13 2010 ~
+----------------------------
+ - Added check for cases where the closing brace is preceded with another
+     brace like (m downto n));
+
+
+Version 0.1.1 ; nov. 11 2010 ~
+----------------------------
+ - Check for empty line in function CheckType()
+ - Check for line with only ")" and ");" in function CheckType()
+ - Check for missing ");" in function CheckType()
+
+
+Version 0.1.0 ; nov. 08 2010 ~
+----------------------------
+ - First alpha release
+
+vim:tw=78:ts=8:ft=help:norl
