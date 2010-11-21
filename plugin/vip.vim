@@ -1,7 +1,7 @@
 " VIP : VHDL Interface Plugin
 " File:        vip.vim
-" Version:     1.0.0
-" Last Change: nov. 20 2010
+" Version:     1.0.1
+" Last Change: nov. 21 2010
 " Author:      Jean-Paul Ricaud
 " License:     LGPLv3
 " Description: Copy entity (or component) and paste as component (or entity)
@@ -333,7 +333,7 @@ function s:Action(actionToDo)
         let result = s:PasteEC(s:VHDLType, g:componentWord_VIP, s:VHDLBlock)
       endif
       if (a:actionToDo == "instance")
-        let result = s:PasteECI(s:instanceNumb, g:instSuffix_VIP, g:sigPrefix_VIP, s:VHDLBlock)
+        let result = s:PasteECI(s:instanceNumb, g:instPrefix_VIP, g:instSuffix_VIP, g:sigPrefix_VIP, s:VHDLBlock)
         let s:instanceNumb += 1
       endif
     endif

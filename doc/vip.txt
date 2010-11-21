@@ -2,7 +2,7 @@
 
 VIP                                                   *VIP* *vip* *vip-plugin*
 For Vim version 7.0 or later.
-Last Change: nov. 20 2010
+Last Change: nov. 21 2010
 
 Contents:
 
@@ -413,6 +413,11 @@ LICENSE                                                          *vip-license*
 
 ==============================================================================
 HISTORY                                                          *vip-history*
+
+Version 1.0.1 ; nov. 21 2010 ~
+----------------------------
+ - Fixed missing argument when pasting an entity as an instance
+
 
 Version 1.0.0 ; nov. 20 2010 ~
 ----------------------------
